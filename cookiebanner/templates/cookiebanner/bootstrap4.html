@@ -60,11 +60,7 @@
     let keyValue = document.cookie.match('(^|;) ?cookiebanner=([^;]*)(;|$)');
     let cookiebannerCookie = keyValue ? decodeURIComponent(keyValue[2]) : null;
     if (cookiebannerCookie) return;
-// It looks like the following like needs to be changed
-    $('#cookiebannerModal').modal({
-      backdrop: 'static',
-      keyboard: false
-    });
+  
 //    $(".cookiebannerSubmit").click(function (e) {
       document.querySelector(".cookiebannerSubmit").addEventListener("click", (e) => {
       let enable_cookies;
