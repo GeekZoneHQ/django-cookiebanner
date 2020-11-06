@@ -60,19 +60,21 @@
     let keyValue = document.cookie.match('(^|;) ?cookiebanner=([^;]*)(;|$)');
     let cookiebannerCookie = keyValue ? decodeURIComponent(keyValue[2]) : null;
     if (cookiebannerCookie) return;
-
+// It looks like the following like needs to be changed
     $('#cookiebannerModal').modal({
       backdrop: 'static',
       keyboard: false
     });
-    $(".cookiebannerSubmit").click(function (e) {
+//    $(".cookiebannerSubmit").click(function (e) {
+      document.querySelector(".cookiebannerSubmit").addEventListener("click", (e) => {
       let enable_cookies;
       if (this.name === 'enable_all') {
         enable_cookies = cookiegroups.map((x) => {
           return x.id
         });
       } else {
-        let serialized_form = $("#cookiebannerForm").serializeArray();
+//        let serialized_form = $("#cookiebannerForm").serializeArray();
+        let serialized_form = document.querySelector(".cookiebannerForm").serializeArray();
         let checked_cookiegroups = serialized_form.map((x) => {
           return x.name
         });
