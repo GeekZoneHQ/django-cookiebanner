@@ -60,7 +60,10 @@
     let keyValue = document.cookie.match('(^|;) ?cookiebanner=([^;]*)(;|$)');
     let cookiebannerCookie = keyValue ? decodeURIComponent(keyValue[2]) : null;
     if (cookiebannerCookie) return;
-  
+    
+//    $('#cookiebannerModal').modal({
+      document.querySelector("#cookiebannerModal").style.display = "block";
+     
 //    $(".cookiebannerSubmit").click(function (e) {
       document.querySelector(".cookiebannerSubmit").addEventListener("click", (e) => {
       let enable_cookies;
