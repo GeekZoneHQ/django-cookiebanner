@@ -3,36 +3,38 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h3 class="modal-title" id="cookiebannerModalLabel">{{cb_settings.title}}</h3>
-        {% if cb_settings.header_text %}
-        <p>{{ cb_settings.header_text|safe }}</p>
-        {% endif %}
-      </div>
+        <h3 class="modal-title" id="cookiebannerModalLabel">{{cb_settings.title}}</h3> 
+          {% if cb_settings.header_text %}
+          <p class="header-text">{{ cb_settings.header_text|safe }}
+            <!-- TODO: the link to the Privacy and Cookie policy needs to be added in the url.py file! -->
+            <a class="header-link" href="https://geek.zone/tiki-index.php?page=Privacy%20Notice">privacy and cookie policy</a>.
+          </p>
+            {% endif %}
+        </div>
       <div class="modal-body">
         <form id="cookiebannerForm">
           {% for cookiegroup in cb_settings.groups %}
-          <div id="cookiegroup_{{ cookiegroup.id }}" style="margin-bottom: 10px;">
-            <div>
-              <label class="switch">
-                <input type="checkbox" name="{{ cookiegroup.id }}" {% if not cookiegroup.optional %}checked disabled{% endif %}>
-                <span class="slider"></span>
-              </label>
-              <h4 class="cookiebannerH4">{{ cookiegroup.name }}</h4>
-            </div>
-            <p>{{ cookiegroup.description }}</p>
-            <a data-toggle="collapse" href="#detailCollapse{{ cookiegroup.id }}" role="button">{% trans 'Show cookie details' %}</a>
-            <div class="collapse" id="detailCollapse{{ cookiegroup.id }}">
-              <div class="card card-body">
-                <table>
-                  {% for cookie in cookiegroup.cookies %}
-                  <tr>
-                    <td>{{ cookie.pattern }}</td>
-                    <td>{{ cookie.description }}</td>
-                  </tr>
-                  {% endfor %}
-                </table>
+          <div id="cookiegroup_{{ cookiegroup.id }}">
+              <div class="cookie-group">
+                <label class="switch">
+                  <input type="checkbox" name="{{ cookiegroup.id }}" {% if not cookiegroup.optional %}checked disabled{% endif %}>
+                  <span class="slider"></span>
+                </label>
+                <h4 class="cookiebannerH4">{{ cookiegroup.name }}</h4>
               </div>
-            </div>
+<!--            <a data-toggle="collapse" href="#detailCollapse{{ cookiegroup.id }}" role="button">{% trans 'Show cookie details' %}</a> 
+                <div class="collapse" id="detailCollapse{{ cookiegroup.id }}">      -->
+                <p class="cookie-description">{{ cookiegroup.description }}</p>
+                <div class="card card-body">
+          <!--    <table> 
+                    {% for cookie in cookiegroup.cookies %}
+                    <tr>
+                    <td>{{ cookie.pattern }}</td>       
+                    <td>{{ cookie.description }}</td>  
+                    </tr>                               
+                    {% endfor %}                
+                  </table>         --> 
+              </div>
           </div>
           {% endfor %}
         </form>
@@ -58,13 +60,12 @@
 
   document.addEventListener("DOMContentLoaded", function () {
     let keyValue = document.cookie.match('(^|;) ?cookiebanner=([^;]*)(;|$)');
-    let cookiebannerCookie = keyValue ? decodeURIComponent(keyValue[2]) : null;
+    let cookiebannerCookie = keyValue ? decodeURIComponent(keyValue[0]) : null;
     if (cookiebannerCookie) return;
     
 //    $('#cookiebannerModal').modal({
       document.querySelector("#cookiebannerModal").style.display = "block";
-     
-//    $(".cookiebannerSubmit").click(function (e) {
+    
       document.querySelector(".cookiebannerSubmit").addEventListener("click", (e) => {
       let enable_cookies;
       if (this.name === 'enable_all') {
@@ -72,7 +73,6 @@
           return x.id
         });
       } else {
-//        let serialized_form = $("#cookiebannerForm").serializeArray();
         let serialized_form = document.querySelector(".cookiebannerForm").serializeArray();
         let checked_cookiegroups = serialized_form.map((x) => {
           return x.name
@@ -95,8 +95,35 @@
 </script>
 
 <style>
+
+.modal {
+    display: none;
+    position: fixed;
+    text-align: center;
+    bottom: 0%;
+    left: 5%;
+    right: 5%;
+    background: #111111;
+    color: yellow;
+    padding: 0px 32px;
+  }
+
+  .modal-dialog {
+    margin-top: 30px;
+  }
+
+  .header-text {
+    color: #f5f6fa;
+  }
+
+  .header-link {
+    color: #ff0000;
+    text-align: center;
+  }
+
   .cookiebannerH4 {
     display: inline-block;
+    margin: 0px;
   }
 
   /* The switch - the box around the slider */
@@ -140,7 +167,7 @@
   }
 
   input:checked + .slider {
-    background-color: #2196F3;
+    background-color: rgba(34, 154, 255, 0.4);
   }
 
   input:checked:disabled + .slider {
@@ -169,45 +196,29 @@
     border-radius: 50%;
   }
 
-  .cookie-footer-links {
-    text-align: left;
-    min-height: auto;
-    margin-bottom: auto;
+  .cookie-description {
+    color: #f5f6fa;
+  }
+
+  .btn {
+    background: #ff0000;
+    color: #f5f6fa;
+    width: 90px;
+    height: 40px;
+    margin-bottom: 25px;
+    cursor: pointer;
     display: inline-block;
-    float: left;
+    text-align: center;
+    vertical-align: middle;
+    border: 1px solid transparent;
+    font-size: 0.9375rem;
+    font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    line-height: 1.5;
+    border-radius: 0.25rem;
+  }
+  .btn:hover {
+    background-color: #E00000;
+    border-color: #E00000;
   }
 
-  .cookie-footer-links .nav-item, .cookie-footer-links .nav-link {
-    color: #999;
-  }
-
-  .cookie-footer-links .nav-item:after {
-    content: "|";
-    padding-right: 5px;
-    padding-left: 5px;
-  }
-
-  .cookie-footer-links .nav-item:last-child:after {
-    content: none;
-    padding-right: 0px;
-    padding-left: 0px;
-  }
-
-  .modal-open {
-    overflow-y: auto;
-  }
-
-  .modal-dialog {
-    margin-top: 120px;
-  }
-
-  #cookiebannerForm table {
-		color: rgba(0,0,0,0.7);
-		font-style: italic;
-  }
-
-  #cookiebannerForm table td {
-    padding: 3px 4px;
-  }
-
-</style>
+  </style>
