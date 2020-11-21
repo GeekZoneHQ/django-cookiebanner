@@ -73,7 +73,27 @@
           return x.id
         });
       } else {
-        let serialized_form = document.querySelector(".cookiebannerForm").serializeArray();
+        const form = document.querySelector("#cookiebannerForm");
+        const formData = new FormData(form);
+
+// This makes an assumption that the form only
+// contains checkboxes.
+// This also makes the assumption that essential
+// does not show up because it is disabled.
+
+        let checked_cookiegroups = [];
+        for (let pair of formData.entries()) {
+          if (pair[1] !== 'on') continue;
+          checked_cookiegroups.push(pair[0]);
+        }
+
+        enable_cookies = cookiegroups.filter((x) => {
+          if (checked_cookiegroups.includes(x.id)) return x;
+          return !x.optional
+        }).map((x) => {
+          return x.id
+        }); 
+/*        let serialized_form = document.querySelector("#cookiebannerForm").serializeArray();
         let checked_cookiegroups = serialized_form.map((x) => {
           return x.name
         });
@@ -83,8 +103,8 @@
         })
             .map((x) => {
               return x.id
-            });
-      }
+            });  */
+      }    
 
       // set the cookie.
       let max_age = (365 * 24 * 60 * 60);
