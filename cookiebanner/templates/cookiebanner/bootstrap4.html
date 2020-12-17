@@ -2,54 +2,71 @@
 <div class="modal fade" id="cookiebannerModal" tabindex="-1" role="dialog" aria-labelledby="cookiebannerModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
+      
       <div class="modal-header">
+        
         <h3 class="modal-title" id="cookiebannerModalLabel">{{cb_settings.title}}</h3> 
-          {% if cb_settings.header_text %}
-          <p class="header-text">{{ cb_settings.header_text|safe }}
-            <!-- TODO: the link to the Privacy and Cookie policy needs to be added in the url.py file! -->
-            <a class="header-link" href="https://geek.zone/tiki-index.php?page=Privacy%20Notice">privacy and cookie policy</a>.
-          </p>
-            {% endif %}
-        </div>
+        
+        {% if cb_settings.header_text %}
+        <p class="header-text">{{ cb_settings.header_text|safe }}
+          <!-- TODO: the link to the Privacy and Cookie policy needs to be added in the url.py file! -->
+          <a class="header-link" href="https://geek.zone/tiki-index.php?page=Privacy%20Notice">privacy and cookie policy</a>.
+        </p>
+        {% endif %}
+        
+      </div>
+      
       <div class="modal-body">
         <form id="cookiebannerForm">
           {% for cookiegroup in cb_settings.groups %}
           <div id="cookiegroup_{{ cookiegroup.id }}">
-              <div class="cookie-group">
-                <label class="switch">
-                  <input type="checkbox" name="{{ cookiegroup.id }}" {% if not cookiegroup.optional %}checked disabled{% endif %}>
-                  <span class="slider"></span>
-                </label>
-                <h4 class="cookiebannerH4">{{ cookiegroup.name }}</h4>
-              </div>
-<!--            <a data-toggle="collapse" href="#detailCollapse{{ cookiegroup.id }}" role="button">{% trans 'Show cookie details' %}</a> 
-                <div class="collapse" id="detailCollapse{{ cookiegroup.id }}">      -->
-                <p class="cookie-description">{{ cookiegroup.description }}</p>
-                <div class="card card-body">
-          <!--    <table> 
-                    {% for cookie in cookiegroup.cookies %}
-                    <tr>
-                    <td>{{ cookie.pattern }}</td>       
-                    <td>{{ cookie.description }}</td>  
-                    </tr>                               
-                    {% endfor %}                
-                  </table>         --> 
-              </div>
+            
+            <div class="cookie-group">
+              <label class="switch">
+                <input type="checkbox" name="{{ cookiegroup.id }}" {% if not cookiegroup.optional %}checked disabled{% endif %}>
+                <span class="slider"></span>
+              </label>
+              <h4 class="cookiebannerH4">{{ cookiegroup.name }}</h4>
+            </div>
+            
+            <!--<a data-toggle="collapse" href="#detailCollapse{{ cookiegroup.id }}" role="button">{% trans 'Show cookie details' %}</a> 
+            
+            <div class="collapse" id="detailCollapse{{ cookiegroup.id }}">-->
+            
+            <p class="cookie-description">{{ cookiegroup.description }}</p>
+            
+            <div class="card card-body">
+              <!--<table> 
+                {% for cookie in cookiegroup.cookies %}
+                <tr>
+                  <td>{{ cookie.pattern }}</td>       
+                  <td>{{ cookie.description }}</td>  
+                </tr>                               
+                {% endfor %}                
+              </table>--> 
+            </div>
+            
           </div>
           {% endfor %}
         </form>
       </div>
+      
       <div class="modal-footer">
+        
         {% if cb_settings.footer_text %}
         <p class="text-left">{{ cb_settings.footer_text|safe }}</p>
         {% endif %}
+        
         <input type="submit" name="enable_all" class="cookiebannerSubmit btn btn-primary" value="{% trans 'Accept all' %}">
+        
         <input type="submit" name="save" class="cookiebannerSubmit btn btn-secondary" value="{% trans 'Save' %}">
+        
         <nav class="cookie-footer-links">
           {% for link in cb_settings.footer_links %}
           <span class="nav-item"><a class="nav-link" href="{{ link.href }}">{{ link.title }}</a></span>
           {% endfor %}
         </nav>
+        
       </div>
     </div>
   </div>
@@ -63,10 +80,10 @@
     let cookiebannerCookie = keyValue ? decodeURIComponent(keyValue[0]) : null;
     if (cookiebannerCookie) return;
     
-//    $('#cookiebannerModal').modal({
-      document.querySelector("#cookiebannerModal").style.display = "block";
-    
-      document.querySelector(".cookiebannerSubmit").addEventListener("click", (e) => {
+    //$('#cookiebannerModal').modal({
+    document.querySelector("#cookiebannerModal").style.display = "block";
+  
+    document.querySelector(".cookiebannerSubmit").addEventListener("click", (e) => {
       let enable_cookies;
       if (this.name === 'enable_all') {
         enable_cookies = cookiegroups.map((x) => {
@@ -76,10 +93,10 @@
         const form = document.querySelector("#cookiebannerForm");
         const formData = new FormData(form);
 
-// This makes an assumption that the form only
-// contains checkboxes.
-// This also makes the assumption that essential
-// does not show up because it is disabled.
+        // This makes an assumption that the form only
+        // contains checkboxes.
+        // This also makes the assumption that essential
+        // does not show up because it is disabled.
 
         let checked_cookiegroups = [];
         for (let pair of formData.entries()) {
@@ -92,8 +109,8 @@
           return !x.optional
         }).map((x) => {
           return x.id
-        }); 
-/*        let serialized_form = document.querySelector("#cookiebannerForm").serializeArray();
+        });
+        /*let serialized_form = document.querySelector("#cookiebannerForm").serializeArray();
         let checked_cookiegroups = serialized_form.map((x) => {
           return x.name
         });
@@ -104,8 +121,8 @@
             .map((x) => {
               return x.id
             });  */
-      }    
-
+      }
+      
       // set the cookie.
       let max_age = (365 * 24 * 60 * 60);
       document.cookie = `cookiebanner=${encodeURIComponent(enable_cookies)}; path=/; max-age=${max_age}; secure`;
@@ -115,8 +132,8 @@
 </script>
 
 <style>
-
-.modal {
+  
+  .modal {
     display: none;
     position: fixed;
     text-align: center;
@@ -127,25 +144,25 @@
     color: yellow;
     padding: 0px 32px;
   }
-
+  
   .modal-dialog {
     margin-top: 30px;
   }
-
+  
   .header-text {
     color: #f5f6fa;
   }
-
+  
   .header-link {
     color: #ff0000;
     text-align: center;
   }
-
+  
   .cookiebannerH4 {
     display: inline-block;
     margin: 0px;
   }
-
+  
   /* The switch - the box around the slider */
   .switch {
     position: relative;
@@ -153,14 +170,14 @@
     width: 40px;
     height: 22px;
   }
-
+  
   /* Hide default HTML checkbox */
   .switch input {
     opacity: 0;
     width: 0;
     height: 0;
   }
-
+  
   /* The slider */
   .slider {
     position: absolute;
@@ -173,7 +190,7 @@
     -webkit-transition: .4s;
     transition: .4s;
   }
-
+  
   .slider:before {
     position: absolute;
     content: "";
@@ -185,41 +202,41 @@
     -webkit-transition: .4s;
     transition: .4s;
   }
-
+  
   input:checked + .slider {
     background-color: rgba(34, 154, 255, 0.4);
   }
-
+  
   input:checked:disabled + .slider {
     background-color: rgba(34, 154, 255, 0.4);
   }
   input:checked:disabled + .slider:hover {
     cursor: not-allowed;
   }
-
+  
   input:focus + .slider {
     box-shadow: 0 0 1px #2196F3;
   }
-
+  
   input:checked + .slider:before {
     -webkit-transform: translateX(18px);
     -ms-transform: translateX(18px);
     transform: translateX(18px);
   }
-
+  
   /* Rounded sliders */
   .slider.round {
     border-radius: 34px;
   }
-
+  
   .slider.round:before {
     border-radius: 50%;
   }
-
+  
   .cookie-description {
     color: #f5f6fa;
   }
-
+  
   .btn {
     background: #ff0000;
     color: #f5f6fa;
@@ -240,5 +257,5 @@
     background-color: #E00000;
     border-color: #E00000;
   }
-
-  </style>
+  
+</style>
