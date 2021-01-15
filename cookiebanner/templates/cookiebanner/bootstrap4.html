@@ -46,9 +46,9 @@
     <p>{{ cb_settings.footer_text|safe }}</p>
     {% endif %}
     
-    <input type="submit" name="enable_all" class="cookiebannerSubmit button btn-primary" value="{% trans 'Accept all' %}">
+    <input type="submit" name="enable_all" id="btnEnableAll" class="cookiebannerSubmit button btn-primary" value="{% trans 'Accept all' %}">
     
-    <input type="submit" name="save" class="cookiebannerSubmit button btn-secondary" value="{% trans 'Save' %}">
+    <input type="submit" name="save" id="btnSave" class="cookiebannerSubmit button btn-secondary" value="{% trans 'Save' %}">
     
     <nav class="cookie-footer-links">
       {% for link in cb_settings.footer_links %}
@@ -62,66 +62,78 @@
 <script>
   const cookiegroups = JSON.parse("{{ cookiegroups_json|escapejs }}");
 
-  document.addEventListener("DOMContentLoaded", function () {
-    let keyValue = document.cookie.match('(^|;) ?cookiebanner=([^;]*)(;|$)');
-    let cookiebannerCookie = keyValue ? decodeURIComponent(keyValue[0]) : null;
-    if (cookiebannerCookie) return;
+  function getCookie(cname) {
+    if (!document.cookie)
+      return null;
     
-    //$('#cookiebannerModal').modal({
+    let cookies = document.cookie.split(/;\s*/g);
+    let c = cookies.find((e) => e.match(`^${cname}=`));
+    
+    return c ? c.substr(cname.length + 1) : null;
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log(document.cookie);
+
+    if (getCookie("cookiebanner"))
+      return;
+    
     document.querySelector(".cookiebanner").style.display = "block";
   
-    document.querySelector(".cookiebannerSubmit").addEventListener("click", (e) => {
-      let enable_cookies;
-      if (this.name === 'enable_all') {
-        enable_cookies = cookiegroups.map((x) => {
-          return x.id
-        });
-      } else {
-        const form = document.querySelector("#cookiebannerForm");
-        const formData = new FormData(form);
-
-        // This makes an assumption that the form only
-        // contains checkboxes.
-        // This also makes the assumption that essential
-        // does not show up because it is disabled.
-
-        let checked_cookiegroups = [];
-        for (let pair of formData.entries()) {
-          if (pair[1] !== 'on') continue;
-          checked_cookiegroups.push(pair[0]);
-        }
-
-        enable_cookies = cookiegroups.filter((x) => {
-          if (checked_cookiegroups.includes(x.id)) return x;
-          return !x.optional
-        }).map((x) => {
-          return x.id
-        });
-        /*let serialized_form = document.querySelector("#cookiebannerForm").serializeArray();
-        let checked_cookiegroups = serialized_form.map((x) => {
-          return x.name
-        });
-        enable_cookies = cookiegroups.filter((x) => {
-          if (checked_cookiegroups.includes(x.id)) return x;
-          return !x.optional
-        })
-            .map((x) => {
-              return x.id
-            });  */
-      }
+    document.getElementsByName("enable_all")[0].addEventListener("click", function() {
+      let enable_cookies = cookiegroups.map((x) => x.id);
       
       // set the cookie.
       let max_age = (365 * 24 * 60 * 60);
       document.cookie = `cookiebanner=${encodeURIComponent(enable_cookies)}; path=/; max-age=${max_age}; secure`;
       location.reload();
-    })
+    });
+    
+    document.getElementsByName("save")[0].addEventListener("click", function() {
+      const formData = new FormData(document.querySelector("#cookiebannerForm"));
+
+      // The following makes an assumption that the form only
+      // contains checkboxes.
+      // This also makes the assumption that essential
+      // does not show up because it is disabled.
+
+      let checked_cookiegroups = [];
+      for (let pair of formData.entries()) {
+        console.log(pair);
+        if (pair[1] == "on")
+          checked_cookiegroups.push(pair[0]);
+      }
+
+      let enable_cookies = cookiegroups.filter((x) => {
+        if (checked_cookiegroups.includes(x.id))
+          return x;
+        else
+          return !x.optional;
+      }).map((x) => x.id);
+      /*let serialized_form = document.querySelector("#cookiebannerForm").serializeArray();
+      let checked_cookiegroups = serialized_form.map((x) => {
+        return x.name
+      });
+      enable_cookies = cookiegroups.filter((x) => {
+        if (checked_cookiegroups.includes(x.id)) return x;
+        return !x.optional
+      })
+          .map((x) => {
+            return x.id
+          });  */
+      
+      // set the cookie.
+      let max_age = (365 * 24 * 60 * 60);
+      document.cookie = `cookiebanner=${encodeURIComponent(enable_cookies)}; path=/; max-age=${max_age}; secure`;
+      location.reload();
+    });
   });
 </script>
 
 <style>
   
   .cookiebanner {
-    display: none;
+    display: none; /* display enabled via JS */
     bottom: 0;
     background-color: #FF0000;
     color: #FFFFFF;
@@ -170,7 +182,7 @@
   }
   
   /* The slider */
-  .slider {
+  .switch .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -182,7 +194,7 @@
     transition: .4s;
   }
   
-  .slider:before {
+  .switch .slider:before {
     position: absolute;
     content: "";
     height: 18px;
@@ -197,18 +209,15 @@
   .switch input:checked + .slider {
     background-color: rgba(34, 154, 255, 0.4);
   }
-  
   .switch input:checked:disabled + .slider {
     background-color: rgba(34, 154, 255, 0.4);
   }
   .switch input:checked:disabled + .slider:hover {
     cursor: not-allowed;
   }
-  
   .switch input:focus + .slider {
     box-shadow: 0 0 1px #2196F3;
   }
-  
   .switch input:checked + .slider:before {
     -webkit-transform: translateX(18px);
     -ms-transform: translateX(18px);
@@ -216,11 +225,10 @@
   }
   
   /* Rounded sliders */
-  .switch .slider.round {
+  .switch .slider .round {
     border-radius: 34px;
   }
-  
-  .switch .slider.round:before {
+  .switch .slider .round:before {
     border-radius: 50%;
   }
   
