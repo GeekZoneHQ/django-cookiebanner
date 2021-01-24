@@ -1,5 +1,5 @@
 {% load i18n %}
-<div class="cookiebanner sticky" tabindex="-1" role="dialog" aria-labelledby="cookiebannerModalLabel" aria-hidden="true">
+<div class="cookiebanner" tabindex="-1" role="dialog" aria-labelledby="cookiebannerModalLabel" aria-hidden="true">
   <div class="body-content">
     
     <h3>{{cb_settings.title}}</h3> 
@@ -11,9 +11,9 @@
     
     <form id="cookiebannerForm">
       {% for cookiegroup in cb_settings.groups %}
-      <div id="cookiegroup_{{ cookiegroup.id }}">
+      <div id="cookiegroup-{{ cookiegroup.id }}" class="cookiegroup">
         
-        <div class="cookie-group">
+        <div class="slider-container">
           <label class="switch">
             <input type="checkbox" name="{{ cookiegroup.id }}" {% if not cookiegroup.optional %}checked disabled{% endif %}>
             <span class="slider"></span>
@@ -21,8 +21,9 @@
           <h4>{{ cookiegroup.name }}</h4>
         </div>
         
-        <p>{{ cookiegroup.description }}</p>
+        <p class="description">{{ cookiegroup.description }}</p>
         
+        <!-- The following could be hidden using info buttons -->
         <!--<button class="button" type="button" data-toggle="collapse" data-target="#detailCollapse_{{ cookiegroup.id }}" aria-expanded="false" aria-controls="detailCollapse_{{ cookiegroup.id }}">{% trans 'Show cookie details' %}</button> 
           
         <div class="collapse" id="detailCollapse_{{ cookiegroup.id }}">
@@ -46,9 +47,9 @@
     <p>{{ cb_settings.footer_text|safe }}</p>
     {% endif %}
     
-    <input type="submit" name="enable_all" id="btnEnableAll" class="cookiebannerSubmit button btn-primary" value="{% trans 'Accept all' %}">
+    <input type="submit" name="enable_all" class="cookiebannerSubmit button btn-primary" value="{% trans 'Accept all' %}">
     
-    <input type="submit" name="save" id="btnSave" class="cookiebannerSubmit button btn-secondary" value="{% trans 'Save' %}">
+    <input type="submit" name="save" class="cookiebannerSubmit button btn-secondary" value="{% trans 'Save' %}">
     
     <nav class="cookie-footer-links">
       {% for link in cb_settings.footer_links %}
@@ -62,7 +63,23 @@
 <script>
   const cookiegroups = JSON.parse("{{ cookiegroups_json|escapejs }}");
 
-  function getCookie(cname) {
+  // Execute the following when the page has loaded
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log(document.cookie.split(/;\s*/g));
+
+    // check if cookiebanner cookie already exists
+    if (getCookieData("cookiebanner"))
+      return;
+    
+    // make cookie banner visible
+    document.querySelector(".cookiebanner").style.display = "block";
+    
+    // add listeners for submit buttons
+    document.getElementsByName("enable_all")[0].addEventListener("click", submitCookies);
+    document.getElementsByName("save")[0].addEventListener("click", submitCookies);
+  });
+
+  function getCookieData(cname) {
     if (!document.cookie)
       return null;
     
@@ -72,69 +89,57 @@
     return c ? c.substr(cname.length + 1) : null;
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    console.log(document.cookie);
 
-    if (getCookie("cookiebanner"))
-      return;
-    
-    document.querySelector(".cookiebanner").style.display = "block";
-  
-    document.getElementsByName("enable_all")[0].addEventListener("click", function() {
-      let enable_cookies = cookiegroups.map((x) => x.id);
-      
-      // set the cookie.
-      let max_age = (365 * 24 * 60 * 60);
-      document.cookie = `cookiebanner=${encodeURIComponent(enable_cookies)}; path=/; max-age=${max_age}; secure`;
-      location.reload();
-    });
-    
-    document.getElementsByName("save")[0].addEventListener("click", function() {
-      const formData = new FormData(document.querySelector("#cookiebannerForm"));
+  function submitCookies() {
+    let enabled_cookies;
+    let buttonName = this.name;
 
-      // The following makes an assumption that the form only
-      // contains checkboxes.
-      // This also makes the assumption that essential
-      // does not show up because it is disabled.
+    switch (buttonName) {
+      case "enable_all":
+        // get all cookie group ids
+        enabled_cookies = cookiegroups.map((x) => x.id);
+        break;
 
-      let checked_cookiegroups = [];
-      for (let pair of formData.entries()) {
-        console.log(pair);
-        if (pair[1] == "on")
-          checked_cookiegroups.push(pair[0]);
-      }
+      case "save":
+        // get input data for cookie banner
+        const formData = new FormData(document.querySelector("#cookiebannerForm"));
 
-      let enable_cookies = cookiegroups.filter((x) => {
-        if (checked_cookiegroups.includes(x.id))
-          return x;
-        else
-          return !x.optional;
-      }).map((x) => x.id);
-      /*let serialized_form = document.querySelector("#cookiebannerForm").serializeArray();
-      let checked_cookiegroups = serialized_form.map((x) => {
-        return x.name
-      });
-      enable_cookies = cookiegroups.filter((x) => {
-        if (checked_cookiegroups.includes(x.id)) return x;
-        return !x.optional
-      })
-          .map((x) => {
-            return x.id
-          });  */
-      
-      // set the cookie.
-      let max_age = (365 * 24 * 60 * 60);
-      document.cookie = `cookiebanner=${encodeURIComponent(enable_cookies)}; path=/; max-age=${max_age}; secure`;
-      location.reload();
-    });
-  });
+        // The following makes an assumption that the form only
+        // contains checkboxes.
+        // This also makes the assumption that 'essential'
+        // does not show up because it is disabled.
+
+        let checked_cookiegroups = [];
+        for (let pair of formData.entries()) {
+          if (pair[1] == "on")
+            checked_cookiegroups.push(pair[0]);
+        }
+        
+        enabled_cookies = cookiegroups.filter((x) => {
+          if (checked_cookiegroups.includes(x.id))
+            return x;
+          else
+            return !x.optional;
+        }).map((x) => x.id);
+
+        break;
+
+      default:
+        console.log("Error submitting cookies: Invalid button name " + buttonName)
+        return null;
+    }
+
+    // set the cookiebanner cookie
+    let max_age = (365 * 24 * 60 * 60);
+    document.cookie = `cookiebanner=${encodeURIComponent(enabled_cookies)}; path=/; max-age=${max_age}; secure`;
+    location.reload();
+  }
 </script>
 
 <style>
   
   .cookiebanner {
     display: none; /* display enabled via JS */
-    bottom: 0;
     background-color: #FF0000;
     color: #FFFFFF;
   }
@@ -150,11 +155,8 @@
   }
   
   .cookiebanner a {
-    color: #0033CC;
-  }
-  
-  .cookiebanner h3, .cookiebanner h4 {
-    color: #FFFF00;
+    color: #80FFFF;
+;
   }
   
   .cookiebanner h3 {
@@ -163,11 +165,46 @@
   
   .cookiebanner h4 {
     display: inline-block;
-    margin: 0px;
+    margin: 0 0 0 .7rem;
   }
-  
+
+  .cookiebanner .cookiegroup {
+    max-width: 800px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+  }
+
+  .cookiebanner .cookiegroup .slider-container {
+    display: flex;
+    align-items: center;
+    margin: .5rem 1rem .5rem 0;
+  }
+  .cookiebanner .slider-container:after {
+    content: "—";
+    margin-left: 1rem;
+  }
+
+  @media (max-width: 800px) {
+    .cookiebanner .cookiegroup {
+      flex-direction: column;
+    }
+
+    .cookiebanner .cookiegroup .slider-container {
+      margin: .5rem 0 0 0;
+    }
+    .cookiebanner .slider-container:after {
+      content: "";
+      margin: 0;
+    }
+  }
+
+  .cookiebanner .description {
+    flex-grow: 1;
+  }
+
   /* The switch - the box around the slider */
-  .switch {
+  .cookiebanner .switch {
     position: relative;
     display: inline-block;
     width: 40px;
@@ -175,14 +212,14 @@
   }
   
   /* Hide default HTML checkbox */
-  .switch input {
+  .cookiebanner .switch input {
     opacity: 0;
     width: 0;
     height: 0;
   }
   
   /* The slider */
-  .switch .slider {
+  .cookiebanner .switch .slider {
     position: absolute;
     cursor: pointer;
     top: 0;
@@ -194,7 +231,7 @@
     transition: .4s;
   }
   
-  .switch .slider:before {
+  .cookiebanner .switch .slider:before {
     position: absolute;
     content: "";
     height: 18px;
@@ -206,51 +243,30 @@
     transition: .4s;
   }
   
-  .switch input:checked + .slider {
+  .cookiebanner .switch input:checked + .slider {
     background-color: rgba(34, 154, 255, 0.4);
   }
-  .switch input:checked:disabled + .slider {
+  .cookiebanner .switch input:checked:disabled + .slider {
     background-color: rgba(34, 154, 255, 0.4);
   }
-  .switch input:checked:disabled + .slider:hover {
+  .cookiebanner .switch input:checked:disabled + .slider:hover {
     cursor: not-allowed;
   }
-  .switch input:focus + .slider {
+  .cookiebanner .switch input:focus + .slider {
     box-shadow: 0 0 1px #2196F3;
   }
-  .switch input:checked + .slider:before {
+  .cookiebanner .switch input:checked + .slider:before {
     -webkit-transform: translateX(18px);
     -ms-transform: translateX(18px);
     transform: translateX(18px);
   }
   
   /* Rounded sliders */
-  .switch .slider .round {
+  .cookiebanner .switch .slider .round {
     border-radius: 34px;
   }
-  .switch .slider .round:before {
+  .cookiebanner .switch .slider .round:before {
     border-radius: 50%;
   }
-  
-  /*.btn {
-    background: #ff0000;
-    color: #f5f6fa;
-    width: 90px;
-    height: 40px;
-    margin-bottom: 25px;
-    cursor: pointer;
-    display: inline-block;
-    text-align: center;
-    vertical-align: middle;
-    border: 1px solid transparent;
-    font-size: 0.9375rem;
-    font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    line-height: 1.5;
-    border-radius: 0.25rem;
-  }
-  .btn:hover {
-    background-color: #E00000;
-    border-color: #E00000;
-  }*/
   
 </style>
