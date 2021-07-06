@@ -1,27 +1,27 @@
 {% load i18n %}
-<div class="cookiebanner" tabindex="-1" role="dialog" aria-labelledby="cookiebannerModalLabel" aria-hidden="true">
-  <div class="body-content">
+<div id="cookiebanner" class="hidden text-white dark:text-red-100 bg-red-500 dark:bg-red-700" tabindex="-1" role="dialog" aria-labelledby="cookiebannerModalLabel" aria-hidden="true">
+  <div class="mx-auto pt-3 px-4 pb-4 sm:pb-3 sm:px-6 max-w-7xl text-sm text-center">
     
-    <h3>{{cb_settings.title}}</h3> 
+    <h3 class="mb-3 sm:mb-2 text-lg font-semibold">{{cb_settings.title}}</h3> 
     
     {% if cb_settings.header_text %}
-    <!-- TODO: the link to the Privacy and Cookie policy needs to be added in the url.py file! -->
-    <p>{{ cb_settings.header_text|safe }}</p>
+      <!-- TODO: the link to the Privacy and Cookie policy needs to be added in the url.py file! -->
+      <p class="mb-3 sm:mb-2">{{ cb_settings.header_text|safe }}</p>
     {% endif %}
     
-    <form id="cookiebannerForm">
+    <form id="cookiebanner-form">
       {% for cookiegroup in cb_settings.groups %}
-      <div id="cookiegroup-{{ cookiegroup.id }}" class="cookiegroup">
+      <div id="cookiegroup-{{ cookiegroup.id }}" class="mb-3 sm:mb-2">
         
-        <div class="slider-container">
+        <div class="flex items-center justify-center gap-2">
           <label class="switch">
             <input type="checkbox" name="{{ cookiegroup.id }}" {% if not cookiegroup.optional %}checked disabled{% endif %}>
             <span class="slider"></span>
           </label>
-          <h4>{{ cookiegroup.name }}</h4>
+          <h4 class="text-base font-semibold">{{ cookiegroup.name }}</h4>
         </div>
         
-        <p class="description">{{ cookiegroup.description }}</p>
+        <p class="">{{ cookiegroup.description }}</p>
         
         <!-- The following could be hidden using info buttons -->
         <!--<button class="button" type="button" data-toggle="collapse" data-target="#detailCollapse_{{ cookiegroup.id }}" aria-expanded="false" aria-controls="detailCollapse_{{ cookiegroup.id }}">{% trans 'Show cookie details' %}</button> 
@@ -33,7 +33,7 @@
               <tr>
                 <td>{{ cookie.pattern }}</td>       
                 <td>{{ cookie.description }}</td>  
-              </tr>                               
+              </tr>
               {% endfor %}                
             </table>
           </div>
@@ -44,13 +44,14 @@
     </form>
     
     {% if cb_settings.footer_text %}
-    <p>{{ cb_settings.footer_text|safe }}</p>
+    <p class="mb-3 sm:mb-2">{{ cb_settings.footer_text|safe }}</p>
     {% endif %}
     
-    <input type="submit" name="enable_all" class="cookiebannerSubmit button btn-primary" value="{% trans 'Accept all' %}">
-    
-    <input type="submit" name="save" class="cookiebannerSubmit button btn-secondary" value="{% trans 'Save' %}">
-    
+    <div class="flex justify-center gap-2 mt-3 mb-1">
+      <input type="submit" name="enable_all" class="btn py-1 px-2" value="{% trans 'Accept all' %}">
+      <input type="submit" name="save" class="btn py-1 px-2" value="{% trans 'Save' %}">
+    </div>
+
     <nav class="cookie-footer-links">
       {% for link in cb_settings.footer_links %}
       <span class="nav-item"><a class="nav-link" href="{{ link.href }}">{{ link.title }}</a></span>
@@ -72,7 +73,7 @@
       return;
     
     // make cookie banner visible
-    document.querySelector(".cookiebanner").style.display = "block";
+    document.getElementById("cookiebanner").classList.remove("hidden");
     
     // add listeners for submit buttons
     document.getElementsByName("enable_all")[0].addEventListener("click", submitCookies);
@@ -102,7 +103,7 @@
 
       case "save":
         // get input data for cookie banner
-        const formData = new FormData(document.querySelector("#cookiebannerForm"));
+        const formData = new FormData(document.getElementById("cookiebanner-form"));
 
         // The following makes an assumption that the form only
         // contains checkboxes.
@@ -136,11 +137,11 @@
   }
 </script>
 
-<style>
+<!--<style>
   
   .cookiebanner {
     display: none; /* display enabled via JS */
-    background-color: #FF0000;
+    background-color: #FFFF00;
     color: #FFFFFF;
   }
   
@@ -269,4 +270,4 @@
     border-radius: 50%;
   }
   
-</style>
+</style>-->
